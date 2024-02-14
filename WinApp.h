@@ -13,10 +13,12 @@ public:
 
 	static void CreateWindowView(const wchar_t* title);
 
+	static	HWND hwnd_;
+
 private:
 
 	static inline	WNDCLASS wc_{};// ウィンドウクラス
-	static	HWND hwnd_;
+	
 
 };
 
