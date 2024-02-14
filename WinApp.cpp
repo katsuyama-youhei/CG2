@@ -17,16 +17,16 @@ LRESULT CALLBACK WinApp::WindowProc(HWND hwnd, UINT msg, WPARAM wparam, LPARAM l
 void WinApp::CreateWindowView(const wchar_t* title) {
 
 	// ウィンドウポロージャ 
-	wc.lpfnWndProc = WindowProc;
+	wc_.lpfnWndProc = WindowProc;
 	// ウィンドウクラス名
-	wc.lpszClassName = L"CG2WindowClass";
+	wc_.lpszClassName = L"CG2WindowClass";
 	// インスタンスハンドル
-	wc.hInstance = GetModuleHandle(nullptr);
+	wc_.hInstance = GetModuleHandle(nullptr);
 	// カーソル
-	wc.hCursor = LoadCursor(nullptr, IDC_ARROW);
+	wc_.hCursor = LoadCursor(nullptr, IDC_ARROW);
 
 	// ウィンドウクラスを登録
-	RegisterClass(&wc);
+	RegisterClass(&wc_);
 
 	// ウィンドウサイズを表す構造体にクライアント領域を入れる
 	RECT wrc = { 0,0,kClientWidth,kClientHeight };
@@ -36,7 +36,7 @@ void WinApp::CreateWindowView(const wchar_t* title) {
 
 	// ウィンドウの生成
 	 hwnd_ = CreateWindow(
-		wc.lpszClassName,		//利用するクラス名
+		wc_.lpszClassName,		//利用するクラス名
 		 title,					//タイトルバーの文字(何でも良い)
 		WS_OVERLAPPEDWINDOW,	//よく見るウィンドウスタイル
 		CW_USEDEFAULT,			//表示X座標(Windowsに任せる)
@@ -45,7 +45,7 @@ void WinApp::CreateWindowView(const wchar_t* title) {
 		wrc.bottom - wrc.top,	//ウィンドウ縦幅
 		nullptr,				//親ウィンドウハンドル
 		nullptr,				//メニューハンドル
-		wc.hInstance,			//インスタンスハンドル
+		wc_.hInstance,			//インスタンスハンドル
 		nullptr);				//オプション
 
 	// ウィンドウを表示する

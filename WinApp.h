@@ -15,7 +15,7 @@ public:
 
 private:
 
-	static inline	WNDCLASS wc{};// ウィンドウクラス
+	static inline	WNDCLASS wc_{};// ウィンドウクラス
 	static	HWND hwnd_;
 
 };
