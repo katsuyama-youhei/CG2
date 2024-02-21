@@ -1,8 +1,9 @@
 #include <Windows.h>
 #include "WinApp.h"
 #include "DebugLog.h"
-#include "Math.h"
-#include "Vector4.h"
+#include "Math/Math.h"
+#include "Math/Vector3.h"
+#include "Math/Vector4.h"
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
