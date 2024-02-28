@@ -496,6 +496,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// DepthStencilTextureをウィンドウのサイズで作成
 	ID3D12Resource* depthStencilResource = CreateDepthStencilTextureResource(device,WinApp::kClientWidth, WinApp::kClientHeight);
 
+	// DSV用のヒープでディスクリプタの数は1。DSVはShader内で触るものではないので、ShaderVisibleはfalse
+	ID3D12DescriptorHeap* dsvDescriptorHeap = CreateDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, false);
+	// DSVの設定
+	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc{};
+	dsvDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;  // Format。基本的にはResourceに合わせる
+	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;  // 2dTexture
+	// DSVHeapの先頭にDSVを作る
+	device->CreateDepthStencilView(depthStencilResource, &dsvDesc, dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+
+	// DepthStencilStateの設定
+	D3D12_DEPTH_STENCIL_DESC depthStencilDesc{};
+	// Depthの機能を有効化する
+	depthStencilDesc.DepthEnable = true;
+	// 書き込みします
+	depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+	// 比較関数はLessEqual。つまり、近ければ描画される
+	depthStencilDesc.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+
+
 	// シリアライズしてバイナリにする
 	ID3DBlob* signatureBlob = nullptr;
 	ID3DBlob* errorBlob = nullptr;
@@ -563,6 +582,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//どのように画面に色を打ち込むのかの設定
 	graphicsPipelineStateDesc.SampleDesc.Count = 1;
 	graphicsPipelineStateDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
+	
+	// DepthStencilの設定
+	graphicsPipelineStateDesc.DepthStencilState = depthStencilDesc;
+	graphicsPipelineStateDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	
 	//実際に生成
 	ID3D12PipelineState* graphicsPipelineState = nullptr;
 	hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&graphicsPipelineState));
@@ -702,7 +726,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			// 開発用UIの処理
 			ImGui::ShowDemoWindow();
 
-			transform.rotate.y += 0.03f;
+			transform.rotate.y += 0.01f;
 			Matrix4x4 worldMatrix = MakeAfineMatrix(transform.scale, transform.rotate, transform.translate);
 			Matrix4x4 cameraMatrix = MakeAfineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
 			Matrix4x4 viewMatrix = Inverse(cameraMatrix);
@@ -734,8 +758,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->ResourceBarrier(1, &barrier);
 
 
-			// 描画先のRTVを設定する
-			commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, nullptr);
+			// 描画先のDSVとRTVを設定する
+			D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = dsvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+			commandList->OMSetRenderTargets(1, &rtvHandles[backBufferIndex], false, &dsvHandle);
+			
+			// 指定した深度で画面全体をクリアする
+			commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+
 			// 指定した色で画面全体をクリアする
 			float clearColor[] = { 0.1f, 0.25f, 0.5f, 1.0f };//青っぽい色。RGBAの順
 			commandList->ClearRenderTargetView(rtvHandles[backBufferIndex], clearColor, 0, nullptr);
@@ -858,6 +887,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	intermediateResource->Release();
 
 	depthStencilResource->Release();
+
+	dsvDescriptorHeap->Release();
 
 	CloseWindow(WinApp::hwnd_);
 
