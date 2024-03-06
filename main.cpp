@@ -616,17 +616,17 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 書き込むためのアドレスを取得
 	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
 	
-	// 緯度の方向に分割
+	//緯度の方向に分割 
 	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
 		float lat = -1.0f * float(std::numbers::pi) / 2.0f + kLatEvery * latIndex;//現在の緯度
-		// 経度の方向に分割
+		//経度の方向に分割
 		for (uint32_t lonIndex = 0; lonIndex < kSubdivision; ++lonIndex) {
 			uint32_t start = (latIndex * kSubdivision + lonIndex) * 6;
-			float lon = lonIndex * kLonEvery;  // 現在の経度
-			// Texcood
+			float lon = lonIndex * kLonEvery;//現在の経度
+			//Texcoord
 			float u = float(lonIndex) / float(kSubdivision);
-			float v = lonIndex * kLonEvery;  // 現在の経度
-			// 頂点データの書き込み
+			float v = 1.0f - float(latIndex) / float(kSubdivision);
+			//頂点データの書き込み
 			vertexData[start].position.x = cos(lat) * cos(lon);
 			vertexData[start].position.y = sin(lat);
 			vertexData[start].position.z = cos(lat) * sin(lon);
@@ -657,7 +657,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			vertexData[start + 5].position.z = cos(lat + kLatEvery) * sin(lon + kLonEvery);
 			vertexData[start + 5].position.w = 1.0f;
 			vertexData[start + 5].texcoord = { u + 1.0f / float(kSubdivision) , v };
-
 		}
 	}
 
