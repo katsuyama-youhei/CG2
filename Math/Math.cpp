@@ -555,7 +555,7 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 	Matrix4x4 ry = MakeRotateYMatrix(rotate.y);
 	Matrix4x4 rz = MakeRotateZMatrix(rotate.z);
 	Matrix4x4 rxyz = Multiply(rx, Multiply(ry, rz));
-	Matrix4x4 result = Multiply(Multiply(s, rxyz), t);
+	Matrix4x4 result = Multiply(s,Multiply( rxyz, t));
 
 	return result;
 }

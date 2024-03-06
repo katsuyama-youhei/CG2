@@ -809,9 +809,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
 			Matrix4x4 viewMatrix = Inverse(cameraMatrix);
 			Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(WinApp::kClientWidth) / float(WinApp::kClientHeight), 0.1f, 100.0f);
-			Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, projectionMatrix);
+			Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix,projectionMatrix));
 			// Matrix4x4 worldViewProjectionMatrix = worldMatrix*projectionMatrix;
-			*wvpData = worldMatrix;
+			*wvpData = worldViewProjectionMatrix;
 
 			// Sprite用のWorldProjectionMatrixを作る
 			Matrix4x4 worldMatrixSprite = MakeAffineMatrix(transformSprite.scale, transformSprite.rotate, transformSprite.translate);
@@ -820,12 +820,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			Matrix4x4 worldViewProjectionMatrixSprite = Multiply(worldMatrixSprite, Multiply(viewMatrixSprite, projectionMatrixSprite));
 			*transformationMatrixDataSprite = worldViewProjectionMatrixSprite;
 
+			ImGui::Begin("Window");
+			//ImGui::DragFloat3("CameraTransform", &cameraTransform.translate.x, 0.01f);
+			ImGui::DragFloat3("CameraTransform", &cameraTransform.rotate.x, 0.01f);
+			ImGui::End();
+
 			// ImGuiの内部コマンドを生成する
 			ImGui::Render();
 
 			// これから書き込むバックバッファのインデックスを取得
 			UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
-
 
 			// TransitionBarrierの設定
 			D3D12_RESOURCE_BARRIER barrier{};
@@ -887,8 +891,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			// 描画！　(DrawCall/ドローコール)
 			commandList->DrawInstanced(6, 1, 0, 0);
 
+		
+
 			// 実際のcommandListのImGuiの描画コマンドを積む
 			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList);
+
+		
 
 			// 画面に描く処理はすべて終わり、画面に移すので、状態を遷移
 			// 今回はRenderTargetからPresentにする
