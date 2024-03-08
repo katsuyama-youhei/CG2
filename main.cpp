@@ -506,11 +506,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;     // CBVを使う
 	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;  // PixelShaderで使う
 	rootParameters[0].Descriptor.ShaderRegister = 0;   // レジスタ番号0とバインド
-	
+
 	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;     // CBVを使う
 	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;  // VertexShaderで使う
 	rootParameters[1].Descriptor.ShaderRegister = 0;   // レジスタ番号0とバインド
-	
+
 	rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;  // DescriptorTableを使う
 	rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;  // PixelShaderで使う
 	rootParameters[2].DescriptorTable.pDescriptorRanges = descriptorRange;  // Tableの中身の配列を指定
@@ -931,10 +931,43 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			ImGui_ImplDX12_NewFrame();
 			ImGui_ImplWin32_NewFrame();
 			ImGui::NewFrame();
-			ImGui::DragFloat3("CameraTransform", &cameraTransform.translate.x, 0.01f);
-			ImGui::DragFloat3("CameraRotateX", &cameraTransform.rotate.x, 0.01f);
-			//ImGui::DragFloat4("color", &materialData->color.x, 0.01f);
-			ImGui::Checkbox("useMonsterBall", &useMonsterBall);
+
+			ImGui::Begin("debug");
+
+			if (ImGui::TreeNode("Camera")) {
+
+				ImGui::DragFloat3("CameraTransform", &cameraTransform.translate.x, 0.01f);
+				ImGui::DragFloat3("CameraRotateX", &cameraTransform.rotate.x, 0.01f);
+
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNode("Sphere")) {
+				ImGui::ColorEdit4("color", &materialData->color.x);
+				ImGui::Checkbox("useMonsterBall", &useMonsterBall);
+				ImGui::TreePop();
+			}
+
+			if (ImGui::TreeNode("Sprite")) {
+				ImGui::ColorEdit4("colorSprite", &materialDataSprite->color.x);
+				ImGui::TreePop();
+			}
+
+			ImGui::End();
+
+			//ImGui::Begin("debug");
+
+			//ImGui::DragFloat3("CameraTransform", &cameraTransform.translate.x, 0.01f);
+			//ImGui::DragFloat3("CameraRotateX", &cameraTransform.rotate.x, 0.01f);
+			//
+			//// 球
+			//ImGui::ColorEdit4("color", &materialData->color.x);
+
+			//ImGui::Checkbox("useMonsterBall",&useMonsterBall);
+			//// Sprite
+			//ImGui::ColorEdit4("colorSprite", &materialDataSprite->color.x);
+
+			//ImGui::End();
 
 			// 開発用UIの処理
 			ImGui::ShowDemoWindow();
@@ -957,7 +990,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			transformationMatrixDataSprite->WVP = worldViewProjectionMatrixSprite;
 			transformationMatrixDataSprite->World = worldMatrixSprite;
 
-			
+
 
 			// ImGuiの内部コマンドを生成する
 			ImGui::Render();
