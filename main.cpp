@@ -33,6 +33,11 @@ struct VertexData {
 	Vector3 normal;
 };
 
+struct Material {
+	Vector4 color;
+	int32_t enablelighting;
+};
+
 //CompileShader
 IDxcBlob* CompileShader(
 	// compilerするshaderファイルへのパス
@@ -784,13 +789,27 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	scissorRect.bottom = WinApp::kClientHeight;
 
 	// マテリアル用のリソースを作る。今回はcolor1つ分のサイズを用意する
-	ID3D12Resource* materialResource = CreateBufferResource(device, sizeof(Vector4));
+	ID3D12Resource* materialResource = CreateBufferResource(device, sizeof(Material));
 	// マテリアルにデータを書き込む
-	Vector4* materialData = nullptr;
+	Material* materialData = nullptr;
 	// 書き込むためのアドレスを取得
 	materialResource->Map(0, nullptr, reinterpret_cast<void**>(&materialData));
-	// 今回は赤を書き込んでみる
-	*materialData = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+	// 白を書き込んでみる
+	materialData->color = { 1.0f,1.0f,1.0f,1.0f };
+	// 球はLightingするのでtrueに設定
+	materialData->enablelighting = true;
+
+	// Sprite用のマテリアルリソースを作る
+	ID3D12Resource* materialResourceSprite = CreateBufferResource(device, sizeof(Material));
+	// マテリアルにデータを書き込む
+	Material* materialDataSprite = nullptr;
+	// 書き込むためのアドレスを取得
+	materialResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&materialDataSprite));
+	// 白を書き込んでみる
+	materialDataSprite->color = { 1.0f,1.0f,1.0f,1.0f };
+	// SpriteはLightingしないのでfalseに設定
+	materialDataSprite->enablelighting = false;
+
 
 	//WVP用のリソースを作る。Matrix4x4 1つ分のサイズを用意する
 	ID3D12Resource* wvpResource = CreateBufferResource(device, sizeof(Matrix4x4));
@@ -972,11 +991,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			// TransformationMatrixBufferの場所を設定
 			commandList->SetGraphicsRootConstantBufferView(1, transformationMatrixResourceSprite->GetGPUVirtualAddress());
 
+			commandList->SetGraphicsRootConstantBufferView(0, materialResourceSprite->GetGPUVirtualAddress());
+
+
 			// SRVのDescriptorTableの先頭を設定。2はrootParameter[2]である
 			commandList->SetGraphicsRootDescriptorTable(2, textureSrvHandleGPU);
 
 
-			// 描画！　(DrawCall/ドローコール)
+			// 描画
 			commandList->DrawInstanced(6, 1, 0, 0);
 
 
@@ -1083,6 +1105,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	textureResource2->Release();
 	intermediateResource2->Release();
+
+	materialResourceSprite->Release();
 
 	CloseWindow(WinApp::hwnd_);
 
