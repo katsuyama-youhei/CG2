@@ -643,7 +643,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	hr = device->CreateGraphicsPipelineState(&graphicsPipelineStateDesc, IID_PPV_ARGS(&graphicsPipelineState));
 	assert(SUCCEEDED(hr));
 
-	// 球
+	// Sphere
 	const uint32_t kSubdivision = 16;  // 分割数
 	const float kLonEvery = 2.0f * float(std::numbers::pi) / float(kSubdivision);  // 経度分割1つ分の角度
 	const float kLatEvery = float(std::numbers::pi) / float(kSubdivision);  // 緯度分割１つ分の角度
@@ -664,6 +664,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	VertexData* vertexData = nullptr;
 	// 書き込むためのアドレスを取得
 	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
+
+	// Sphere用のインデックスリソースを作る
+	ID3D12Resource* indexResource = CreateBufferResource(device, sizeof(uint32_t) * kSubdivision * kSubdivision * 6);
+	// インデックスバッファービュー
+	D3D12_INDEX_BUFFER_VIEW indexBufferView{};
+	// リソースの先頭のアドレスから使う
+	indexBufferView.BufferLocation = indexResource->GetGPUVirtualAddress();
+	// 使用するリソースのサイズはインデックス6つ分
+	indexBufferView.SizeInBytes = sizeof(uint32_t) * kSubdivision * kSubdivision * 6;
+	// インデックスはuint32_tとする
+	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
+
+	// インデックスリソースにデータを書き込む
+	uint32_t* indexData = nullptr;
+	indexResource->Map(0, nullptr, reinterpret_cast<void**>(&indexData));
 
 	// 緯度の方向に分割 
 	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
@@ -730,6 +745,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			vertexData[start + 5].normal.y = vertexData[start + 5].position.y;
 			vertexData[start + 5].normal.z = vertexData[start + 5].position.z;
 
+			//インデックスリソースにデータを書き込む
+			indexData[start] = start;
+			indexData[start + 1] = start + 1;
+			indexData[start + 2] = start + 2;
+			indexData[start + 3] = start + 2;
+			indexData[start + 4] = start + 1;
+			indexData[start + 5] = start + 5;
+
 		}
 	}
 
@@ -762,7 +785,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	vertexDataSprite[2].texcoord = { 1.0f,1.0f };
 	vertexDataSprite[2].normal = { 0.0f,0.0f,-1.0f };
 	// 2枚目の三角形
-	
+
 	// 右上
 	vertexDataSprite[3].position = { 640.0f,0.0f,0.0f,1.0f };
 	vertexDataSprite[3].texcoord = { 1.0f,0.0f };
@@ -793,12 +816,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 書き込むためのアドレスを取得
 	indexResourceSprite->Map(0, nullptr, reinterpret_cast<void**>(&indexDataSprite));
 
-	indexDataSprite[0] = 0;  
-	indexDataSprite[1] = 1;  
+	indexDataSprite[0] = 0;
+	indexDataSprite[1] = 1;
 	indexDataSprite[2] = 2;
-	
-	indexDataSprite[3] = 1;  
-	indexDataSprite[4] = 3;  
+
+	indexDataSprite[3] = 1;
+	indexDataSprite[4] = 3;
 	indexDataSprite[5] = 2;
 
 
@@ -1055,6 +1078,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->SetGraphicsRootSignature(rootSignature);
 			commandList->SetPipelineState(graphicsPipelineState);//PS0を設定
 			commandList->IASetVertexBuffers(0, 1, &vertexBufferView); //VBVを設定
+			//IBVを設定
+			commandList->IASetIndexBuffer(&indexBufferView);
+
 			// 形状を設定。PS0に設定しているものとは別。
 			commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -1071,10 +1097,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->SetGraphicsRootDescriptorTable(2, useMonsterBall ? textureSrvHandleGPU2 : textureSrvHandleGPU);
 
 			// 描画
-			commandList->DrawInstanced(kSubdivision * kSubdivision * 6, 1, 0, 0);
+			commandList->DrawIndexedInstanced(kSubdivision * kSubdivision * 6, 1, 0, 0, 0);
 
 			// Spriteの描画。変更が必要なものだけ変更する
-			commandList->IASetVertexBuffers(0,1,&vertexBufferViewSprite); 
+			commandList->IASetVertexBuffers(0, 1, &vertexBufferViewSprite);
 			// IBVを設定
 			commandList->IASetIndexBuffer(&indexBufferViewSprite);
 			// TransformationMatrixBufferの場所を設定
@@ -1198,6 +1224,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	directionalLightResource->Release();
 
 	indexResourceSprite->Release();
+	indexResource->Release();
 
 	CloseWindow(WinApp::hwnd_);
 
