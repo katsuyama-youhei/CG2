@@ -315,6 +315,7 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 		std::string identifier;
 		std::istringstream s(line);
 		s >> identifier;  // 先頭の識別子を読む
+		
 		// identifierに応じた処理
 		if (identifier == "v") {
 			Vector4 position;
@@ -325,6 +326,7 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 		else if (identifier == "vt") {
 			Vector2 texcood;
 			s >> texcood.x >> texcood.y;
+			texcood.y = 1.0f - texcood.y;
 			texcoords.push_back(texcood);
 		}
 		else if (identifier == "vn") {
@@ -1093,7 +1095,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			if (ImGui::TreeNode("Sphere")) {
 				ImGui::ColorEdit4("color", &materialData->color.x);
 				ImGui::Checkbox("useMonsterBall", &useMonsterBall);
-				ImGui::SliderAngle("a", &transform.rotate.y);
+				ImGui::SliderAngle("SphereRotateX", &transform.rotate.x);
+				ImGui::SliderAngle("SphereRotateY", &transform.rotate.y);
+				ImGui::SliderAngle("SphereRotateZ", &transform.rotate.z);
 				ImGui::TreePop();
 			}
 
