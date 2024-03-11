@@ -53,9 +53,16 @@ struct DirectionalLight {
 	float intensity;  // 輝度
 };
 
+struct MaterialData {
+	std::string textureFilePath;
+};
+
 struct ModelData {
 	std::vector<VertexData> vertices;
+	MaterialData material;
 };
+
+
 
 // CompileShader
 IDxcBlob* CompileShader(
@@ -297,6 +304,37 @@ D3D12_GPU_DESCRIPTOR_HANDLE GetGPUDescriptorHandle(ID3D12DescriptorHeap* descrip
 	return handleGPU;
 }
 
+// mtlファイルを読む関数
+MaterialData LordMaterialTemplateFile(const std::string& directoryPath, const std::string& filename) {
+
+	// 1. 中で必要となる変数の宣言
+	MaterialData materialData;  // 構築するMaterialData
+	std::string line;  // ファイルから読んだ1行を格納するもの
+
+	// 2. ファイルを開く
+	std::ifstream file(directoryPath + "/" + filename);
+	// とりあえず開けなかったら止める
+	assert(file.is_open());
+
+	// 3. 実際にファイルを読み、MaterialDataを構築していく
+	while (std::getline(file, line)) {
+		std::string identifier;
+		std::istringstream s(line);
+		s >> identifier;
+
+		// identifierに応じた処理
+		if (identifier == "map_Kd") {
+			std::string textureFilename;
+			s >> textureFilename;
+			// 連結してファイルパスにする
+			materialData.textureFilePath = directoryPath + "/" + textureFilename;
+		}
+	}
+
+	// 4. MaterialDataを返す
+	return materialData;
+}
+
 // Objファイルを読み込む関数
 ModelData LoadObjFile(const std::string& directoryPath, const std::string& filename) {
 	// 1. 中で必要となる変数の宣言
@@ -361,11 +399,20 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 			modelData.vertices.push_back(triangle[1]);
 			modelData.vertices.push_back(triangle[0]);
 		}
+		else if (identifier == "mtllib") {
+			// materialTemplateLibraryファイルの名前を取得する
+			std::string materialFilename;
+			s >> materialFilename;
+			// 基本的にobjファイルと同一改装にmtlは存在させるので、ディレクトリ名とファイル名を渡す
+			modelData.material = LordMaterialTemplateFile(directoryPath, materialFilename);
+		}
 	}
-
+	
 	// 4. ModelDataを返す
 	return modelData;
 }
+
+
 
 const wchar_t kWindowTitle[] = { L"CG2" };
 
@@ -964,7 +1011,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 白を書き込んでみる
 	materialData->color = { 1.0f,1.0f,1.0f,1.0f };
 	// 球はLightingするのでtrueに設定
-	materialData->enablelighting = true;
+	materialData->enablelighting = false;
 	// UVTransformeの初期化
 	materialData->uvTransform = MakeIdentity4x4();
 
@@ -1041,7 +1088,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// 2枚目
 	// 2枚目のTextureを読んで転送する
-	DirectX::ScratchImage mipImages2 = LoadTexture("resources/monsterBall.png");
+	DirectX::ScratchImage mipImages2 = LoadTexture(modelData.material.textureFilePath);
 	const DirectX::TexMetadata& metadata2 = mipImages2.GetMetadata();
 	ID3D12Resource* textureResource2 = CreateTextureResource(device, metadata2);
 	ID3D12Resource* intermediateResource2 = UploadTextureData(textureResource2, mipImages2, device, commandList);
