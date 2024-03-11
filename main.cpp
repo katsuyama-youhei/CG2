@@ -953,6 +953,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				ImGui::TreePop();
 			}
 
+			if (ImGui::TreeNode("DirectionalLight")) {
+				ImGui::ColorEdit4("LightColor", &directionalLightData->color.x);
+				ImGui::DragFloat3("LightDirectional", &directionalLightData->direction.x,0.01f);
+				ImGui::DragFloat("Intensity", &directionalLightData->intensity);
+				ImGui::TreePop();
+			}
+
 			ImGui::End();
 
 			// 開発用UIの処理
