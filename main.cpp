@@ -1032,8 +1032,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			transformationMatrixDataSprite->WVP = worldViewProjectionMatrixSprite;
 			transformationMatrixDataSprite->World = worldMatrixSprite;
 
-
-
 			// ImGuiの内部コマンドを生成する
 			ImGui::Render();
 
