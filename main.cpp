@@ -773,7 +773,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//const float kLatEvery = float(std::numbers::pi) / float(kSubdivision);  // 緯度分割１つ分の角度
 
 	// モデル読み込み
-	ModelData modelData = LoadObjFile("resources", "plane.obj");
+	ModelData modelData = LoadObjFile("resources", "axis.obj");
 
 	// 頂点リソースの設定
 	ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(VertexData) * modelData.vertices.size());
@@ -1011,7 +1011,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 白を書き込んでみる
 	materialData->color = { 1.0f,1.0f,1.0f,1.0f };
 	// 球はLightingするのでtrueに設定
-	materialData->enablelighting = false;
+	materialData->enablelighting = true;
 	// UVTransformeの初期化
 	materialData->uvTransform = MakeIdentity4x4();
 
