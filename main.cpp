@@ -359,6 +359,8 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 			Vector4 position;
 			s >> position.x >> position.y >> position.z;
 			position.w = 1.0f;
+			//position.x *= -1.0f;
+			position.z *= -1.0f;
 			positions.push_back(position);
 		}
 		else if (identifier == "vt") {
@@ -370,6 +372,8 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 		else if (identifier == "vn") {
 			Vector3 normal;
 			s >> normal.x >> normal.y >> normal.z;
+			//normal.x *= -1.0f;
+			normal.z *= -1.0f;
 			normals.push_back(normal);
 		}
 		else if (identifier == "f") {
@@ -773,7 +777,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//const float kLatEvery = float(std::numbers::pi) / float(kSubdivision);  // 緯度分割１つ分の角度
 
 	// モデル読み込み
-	ModelData modelData = LoadObjFile("resources", "axis.obj");
+	ModelData modelData = LoadObjFile("resources", "plane.obj");
 
 	// 頂点リソースの設定
 	ID3D12Resource* vertexResource = CreateBufferResource(device, sizeof(VertexData) * modelData.vertices.size());
@@ -1160,7 +1164,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			}
 
 			if (ImGui::TreeNode("DirectionalLight")) {
-				ImGui::ColorEdit4("LightColor", &directionalLightData->color.x);
+				ImGui::ColorEdit3("LightColor", &directionalLightData->color.x);
 				ImGui::DragFloat3("LightDirectional", &directionalLightData->direction.x, 0.01f);
 				ImGui::DragFloat("Intensity", &directionalLightData->intensity);
 				ImGui::TreePop();
