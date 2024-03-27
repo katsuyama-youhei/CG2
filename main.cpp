@@ -366,7 +366,7 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 		std::string identifier;
 		std::istringstream s(line);
 		s >> identifier;  // 先頭の識別子を読む
-		
+
 		// identifierに応じた処理
 		if (identifier == "v") {
 			Vector4 position;
@@ -424,7 +424,7 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 			modelData.material = LordMaterialTemplateFile(directoryPath, materialFilename);
 		}
 	}
-	
+
 	// 4. ModelDataを返す
 	return modelData;
 }
@@ -807,7 +807,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 書き込むためのアドレスを取得
 	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
 	// 頂点データをリソースにコピー
-	std::memcpy(vertexData, modelData.vertices.data(), sizeof(VertexData)* modelData.vertices.size());
+	std::memcpy(vertexData, modelData.vertices.data(), sizeof(VertexData) * modelData.vertices.size());
 
 	// Sphere用のインデックスリソースを作る
 	Microsoft::WRL::ComPtr<ID3D12Resource> indexResource = CreateBufferResource(device, sizeof(uint32_t) * kSubdivision * kSubdivision * 6);
@@ -823,11 +823,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// インデックスリソースにデータを書き込む
 	uint32_t* indexData = nullptr;
 	indexResource->Map(0, nullptr, reinterpret_cast<void**>(&indexData));
-	
+
 	/*
-	 
-	
-	// 緯度の方向に分割 
+
+
+	// 緯度の方向に分割
 	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
 		float lat = -1.0f * float(std::numbers::pi) / 2.0f + kLatEvery * latIndex;  // 現在の緯度
 		// 経度の方向に分割
@@ -902,8 +902,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		}
 	}
-	
-	
+
+
 	*/
 
 	// Sprite用の頂点リソースを作る
@@ -1244,7 +1244,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			commandList->ClearRenderTargetView(rtvHandles[backBufferIndex], clearColor, 0, nullptr);
 
 			// 描画用のDescriptorHeapの設定
-			Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeaps[] = { srvDescriptorHeap.Get()};
+			Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeaps[] = { srvDescriptorHeap.Get() };
 			commandList->SetDescriptorHeaps(1, descriptorHeaps->GetAddressOf());
 
 			// 描画
