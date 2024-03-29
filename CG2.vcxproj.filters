@@ -33,10 +33,10 @@
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="DebugLog.cpp">
+    <ClCompile Include="DirectXGame\Base\DebugSytem\DebugLog.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="WinApp.cpp">
+    <ClCompile Include="DirectXGame\Base\WinApp\WinApp.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Externals\imgui\imgui.cpp">
@@ -60,21 +60,21 @@
     <ClCompile Include="Externals\imgui\imgui_widgets.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="Math\Math.cpp">
+    <ClCompile Include="DirectXGame\Math\Math.cpp">
       <Filter>ソース ファイル\Math</Filter>
     </ClCompile>
-    <ClCompile Include="Math\Vector2.cpp">
+    <ClCompile Include="DirectXGame\Math\Vector2.cpp">
       <Filter>ソース ファイル\Math</Filter>
     </ClCompile>
-    <ClCompile Include="Math\Vector3.cpp">
+    <ClCompile Include="DirectXGame\Math\Vector3.cpp">
       <Filter>ソース ファイル\Math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DebugLog.h">
+    <ClInclude Include="DirectXGame\Base\DebugSytem\DebugLog.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="WinApp.h">
+    <ClInclude Include="DirectXGame\Base\WinApp\WinApp.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
     <ClInclude Include="Externals\imgui\imconfig.h">
@@ -101,22 +101,22 @@
     <ClInclude Include="Externals\imgui\imstb_truetype.h">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="Math\AABB.h">
+    <ClInclude Include="DirectXGame\Math\AABB.h">
       <Filter>ヘッダー ファイル\Math</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Math.h">
+    <ClInclude Include="DirectXGame\Math\Math.h">
       <Filter>ヘッダー ファイル\Math</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Matrix4x4.h">
+    <ClInclude Include="DirectXGame\Math\Matrix4x4.h">
       <Filter>ヘッダー ファイル\Math</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Vector2.h">
+    <ClInclude Include="DirectXGame\Math\Vector2.h">
       <Filter>ヘッダー ファイル\Math</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Vector3.h">
+    <ClInclude Include="DirectXGame\Math\Vector3.h">
       <Filter>ヘッダー ファイル\Math</Filter>
     </ClInclude>
-    <ClInclude Include="Math\Vector4.h">
+    <ClInclude Include="DirectXGame\Math\Vector4.h">
       <Filter>ヘッダー ファイル\Math</Filter>
     </ClInclude>
   </ItemGroup>

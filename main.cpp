@@ -1,12 +1,12 @@
 #include <Windows.h>
-#include "WinApp.h"
+#include "DirectXGame/Base/WinApp/WinApp.h"
 #include <cmath>
 #include <numbers>
-#include "DebugLog.h"
-#include "Math/Math.h"
-#include "Math/Vector2.h"
-#include "Math/Vector3.h"
-#include "Math/Vector4.h"
+#include "DirectXGame/Base/DebugSytem/DebugLog.h"
+#include "DirectXGame/Math/Math.h"
+#include "DirectXGame/Math/Vector2.h"
+#include "DirectXGame/Math/Vector3.h"
+#include "DirectXGame/Math/Vector4.h"
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <dxgidebug.h>
@@ -439,7 +439,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// COMの初期化
 	CoInitializeEx(0, COINIT_MULTITHREADED);
 
-	WinApp::CreateWindowView(kWindowTitle);
+	WinApp* winApp = nullptr;
+
+	winApp = WinApp::GetInstance();
+	winApp->CreateGameWindow();
 
 #ifdef _DEBUG
 	Microsoft::WRL::ComPtr<ID3D12Debug1> debugController = nullptr;
@@ -560,15 +563,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// スワップチェーンを生成する
 	Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain = nullptr;
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc{};
-	swapChainDesc.Width = WinApp::kClientWidth;  // 画面の幅。ウィンドウのクライアント領域を同じものにしておく
-	swapChainDesc.Height = WinApp::kClientHeight;  // 画面の高さ。ウィンドウのクライアント領域を同じものにしておく
+	swapChainDesc.Width = winApp->kWindowWidth;  // 画面の幅。ウィンドウのクライアント領域を同じものにしておく
+	swapChainDesc.Height = winApp->kWindowHeight;  // 画面の高さ。ウィンドウのクライアント領域を同じものにしておく
 	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;  // 色の形式
 	swapChainDesc.SampleDesc.Count = 1;  // マルチサンプルしない
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;  // 描画のターゲットとして利用する
 	swapChainDesc.BufferCount = 2;  // ダブルバッファ
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;  // モニタにうつしたら、中身を破棄
 	// コマンドキュー、ウィンドウハンドル、設定を渡して生成する
-	hr = dxgiFactory->CreateSwapChainForHwnd(commandQueue.Get(), WinApp::hwnd_, &swapChainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(swapChain.GetAddressOf()));
+	hr = dxgiFactory->CreateSwapChainForHwnd(commandQueue.Get(), winApp->GetHWND(), &swapChainDesc, nullptr, nullptr, reinterpret_cast<IDXGISwapChain1**>(swapChain.GetAddressOf()));
 	assert(SUCCEEDED(hr));
 
 	// ディスクリプタヒープの生成
@@ -676,7 +679,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	descriptionRootSignature.NumStaticSamplers = _countof(staticSamplers);
 
 	// DepthStencilTextureをウィンドウのサイズで作成
-	Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilResource = CreateDepthStencilTextureResource(device, WinApp::kClientWidth, WinApp::kClientHeight);
+	Microsoft::WRL::ComPtr<ID3D12Resource> depthStencilResource = CreateDepthStencilTextureResource(device, winApp->kWindowWidth, winApp->kWindowHeight);
 
 	// DSV用のヒープでディスクリプタの数は1。DSVはShader内で触るものではないので、ShaderVisibleはfalse
 	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dsvDescriptorHeap = CreateDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1, false);
@@ -1002,8 +1005,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//ビューポート
 	D3D12_VIEWPORT viewport{};
 	//クライアント領域のサイズと一緒にして画面全体に表示
-	viewport.Width = WinApp::kClientWidth;
-	viewport.Height = WinApp::kClientHeight;
+	viewport.Width = winApp->kWindowWidth;
+	viewport.Height =winApp->kWindowHeight;
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
 	viewport.MinDepth = 0.0f;
@@ -1013,9 +1016,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	D3D12_RECT scissorRect{};
 	//基本的にビューポートと同じ矩形が構成されるようにする
 	scissorRect.left = 0;
-	scissorRect.right = WinApp::kClientWidth;
+	scissorRect.right = winApp->kWindowWidth;
 	scissorRect.top = 0;
-	scissorRect.bottom = WinApp::kClientHeight;
+	scissorRect.bottom = winApp->kWindowHeight;
 
 	// マテリアル用のリソースを作る。今回はcolor1つ分のサイズを用意する
 	Microsoft::WRL::ComPtr<ID3D12Resource> materialResource = CreateBufferResource(device, sizeof(Material));
@@ -1066,7 +1069,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 	// ImGuiの初期化
-	IMGUI_CHECKVERSION();
+	/*IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGui::StyleColorsDark();
 	ImGui_ImplWin32_Init(WinApp::hwnd_);
@@ -1077,7 +1080,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		srvDescriptorHeap.Get(),
 		GetCPUDescriptorHandle(srvDescriptorHeap, desriptorSizeSRV, 0),
 		GetGPUDescriptorHandle(srvDescriptorHeap, desriptorSizeSRV, 0)
-	);
+	);*/
 
 	// Textureを読んで転送する
 	DirectX::ScratchImage mipImages = LoadTexture("Resources/uvChecker.png");
@@ -1137,61 +1140,61 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		else {
 			// ゲームの処理
 
-			ImGui_ImplDX12_NewFrame();
-			ImGui_ImplWin32_NewFrame();
-			ImGui::NewFrame();
+			//ImGui_ImplDX12_NewFrame();
+			//ImGui_ImplWin32_NewFrame();
+			//ImGui::NewFrame();
 
-			ImGui::Begin("debug");
+			//ImGui::Begin("debug");
 
-			if (ImGui::TreeNode("Camera")) {
+			//if (ImGui::TreeNode("Camera")) {
 
-				ImGui::DragFloat3("CameraTransform", &cameraTransform.translate.x, 0.01f);
-				//ImGui::DragFloat3("CameraRotateX", &cameraTransform.rotate.x, 0.01f);
-				ImGui::SliderAngle("CameraRotateX", &cameraTransform.rotate.x);
-				ImGui::SliderAngle("CameraRotateY", &cameraTransform.rotate.y);
-				ImGui::SliderAngle("CameraRotateZ", &cameraTransform.rotate.z);
+			//	ImGui::DragFloat3("CameraTransform", &cameraTransform.translate.x, 0.01f);
+			//	//ImGui::DragFloat3("CameraRotateX", &cameraTransform.rotate.x, 0.01f);
+			//	ImGui::SliderAngle("CameraRotateX", &cameraTransform.rotate.x);
+			//	ImGui::SliderAngle("CameraRotateY", &cameraTransform.rotate.y);
+			//	ImGui::SliderAngle("CameraRotateZ", &cameraTransform.rotate.z);
 
-				ImGui::TreePop();
-			}
+			//	ImGui::TreePop();
+			//}
 
-			if (ImGui::TreeNode("Sphere")) {
-				ImGui::ColorEdit4("color", &materialData->color.x);
-				ImGui::Checkbox("useMonsterBall", &useMonsterBall);
-				ImGui::SliderAngle("SphereRotateX", &transform.rotate.x);
-				ImGui::SliderAngle("SphereRotateY", &transform.rotate.y);
-				ImGui::SliderAngle("SphereRotateZ", &transform.rotate.z);
-				ImGui::TreePop();
-			}
+			//if (ImGui::TreeNode("Sphere")) {
+			//	ImGui::ColorEdit4("color", &materialData->color.x);
+			//	ImGui::Checkbox("useMonsterBall", &useMonsterBall);
+			//	ImGui::SliderAngle("SphereRotateX", &transform.rotate.x);
+			//	ImGui::SliderAngle("SphereRotateY", &transform.rotate.y);
+			//	ImGui::SliderAngle("SphereRotateZ", &transform.rotate.z);
+			//	ImGui::TreePop();
+			//}
 
-			if (ImGui::TreeNode("Sprite")) {
-				ImGui::ColorEdit4("colorSprite", &materialDataSprite->color.x);
-				if (ImGui::TreeNode("UV")) {
-					ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x, 0.01f, -10.0f, 10.0f);
-					ImGui::DragFloat2("UVScale", &uvTransformSprite.scale.x, 0.01f, -10.0f, 10.0f);
-					ImGui::SliderAngle("UVRotate", &uvTransformSprite.rotate.z);
-					ImGui::TreePop();
-				}
-				ImGui::TreePop();
-			}
+			//if (ImGui::TreeNode("Sprite")) {
+			//	ImGui::ColorEdit4("colorSprite", &materialDataSprite->color.x);
+			//	if (ImGui::TreeNode("UV")) {
+			//		ImGui::DragFloat2("UVTranslate", &uvTransformSprite.translate.x, 0.01f, -10.0f, 10.0f);
+			//		ImGui::DragFloat2("UVScale", &uvTransformSprite.scale.x, 0.01f, -10.0f, 10.0f);
+			//		ImGui::SliderAngle("UVRotate", &uvTransformSprite.rotate.z);
+			//		ImGui::TreePop();
+			//	}
+			//	ImGui::TreePop();
+			//}
 
-			if (ImGui::TreeNode("DirectionalLight")) {
-				ImGui::ColorEdit3("LightColor", &directionalLightData->color.x);
-				ImGui::DragFloat3("LightDirectional", &directionalLightData->direction.x, 0.01f);
-				ImGui::DragFloat("Intensity", &directionalLightData->intensity);
-				ImGui::TreePop();
-			}
+			//if (ImGui::TreeNode("DirectionalLight")) {
+			//	ImGui::ColorEdit3("LightColor", &directionalLightData->color.x);
+			//	ImGui::DragFloat3("LightDirectional", &directionalLightData->direction.x, 0.01f);
+			//	ImGui::DragFloat("Intensity", &directionalLightData->intensity);
+			//	ImGui::TreePop();
+			//}
 
-			ImGui::End();
+			//ImGui::End();
 
-			// 開発用UIの処理
-			ImGui::ShowDemoWindow();
+			//// 開発用UIの処理
+			//ImGui::ShowDemoWindow();
 
 			//transform.rotate.y += 0.03f;
 
 			Matrix4x4 worldMatrix = MakeAffineMatrix(transform.scale, transform.rotate, transform.translate);
 			Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraTransform.scale, cameraTransform.rotate, cameraTransform.translate);
 			Matrix4x4 viewMatrix = Inverse(cameraMatrix);
-			Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(WinApp::kClientWidth) / float(WinApp::kClientHeight), 0.1f, 100.0f);
+			Matrix4x4 projectionMatrix = MakePerspectiveFovMatrix(0.45f, float(winApp->kWindowWidth) / float(winApp->kWindowHeight), 0.1f, 100.0f);
 			Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(viewMatrix, projectionMatrix));
 			wvpData->WVP = worldViewProjectionMatrix;
 			wvpData->World = worldMatrix;
@@ -1199,7 +1202,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			// Sprite用のWorldProjectionMatrixを作る
 			Matrix4x4 worldMatrixSprite = MakeAffineMatrix(transformSprite.scale, transformSprite.rotate, transformSprite.translate);
 			Matrix4x4 viewMatrixSprite = MakeIdentity4x4();
-			Matrix4x4 projectionMatrixSprite = MakeOrthographicMatrix(0.0f, 0.0f, float(WinApp::kClientWidth), float(WinApp::kClientHeight), 0.0f, 100.0f);
+			Matrix4x4 projectionMatrixSprite = MakeOrthographicMatrix(0.0f, 0.0f, float(winApp->kWindowWidth), float(winApp->kWindowHeight), 0.0f, 100.0f);
 			Matrix4x4 worldViewProjectionMatrixSprite = Multiply(worldMatrixSprite, Multiply(viewMatrixSprite, projectionMatrixSprite));
 			transformationMatrixDataSprite->WVP = worldViewProjectionMatrixSprite;
 			transformationMatrixDataSprite->World = worldMatrixSprite;
@@ -1211,7 +1214,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			materialDataSprite->uvTransform = uvTransformMatrix;
 
 			// ImGuiの内部コマンドを生成する
-			ImGui::Render();
+			//ImGui::Render();
 
 			// これから書き込むバックバッファのインデックスを取得
 			UINT backBufferIndex = swapChain->GetCurrentBackBufferIndex();
@@ -1296,7 +1299,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 			// 実際のcommandListのImGuiの描画コマンドを積む
-			ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList.Get());
+			//ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList.Get());
 
 
 
@@ -1347,9 +1350,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	OutputDebugStringA("Hello,DirectX!\n");
 
 	// ImGuiの終了処理。解放処理の前に
-	ImGui_ImplDX12_Shutdown();
+	/*ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
-	ImGui::DestroyContext();
+	ImGui::DestroyContext();*/
 
 	// 解放
 	CloseHandle(fenceEvent);
@@ -1404,10 +1407,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	//indexResourceSprite->Release();
 	//indexResource->Release();
 
-	CloseWindow(WinApp::hwnd_);
+	CloseWindow(winApp->GetHWND());
 
 	// ゲーム終了時にCOMの終了処理
-	CoUninitialize();
+	//CoUninitialize();
+	winApp->DiscardingWindow();
 
 	return 0;
 }
