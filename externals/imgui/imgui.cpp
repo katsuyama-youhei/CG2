@@ -18,7 +18,9 @@
 
 // Getting Started?
 // - For first-time users having issues compiling/linking/running or issues loading fonts:
-//   please post in https://github.com/ocornut/imgui/discussions if you cannot find a solution in resources above.
+//   please post in https://github.com/ocornut/imgui/discussions if you cannot find a solution in 
+// 
+//  above.
 
 // Developed by Omar Cornut and every direct or indirect contributors to the GitHub.
 // See LICENSE.txt for copyright and licensing details (standard MIT License).
