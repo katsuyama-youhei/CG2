@@ -100,10 +100,6 @@ Vector3 ClosestPoint(const Vector3& point, const Segment& segment) {
 	Vector3 result = segment.origin + project;
 	return result;
 
-	/*float t = Dot(Subtract(point, segment.origin), segment.diff) / std::powf(Length(segment.diff), 2.0f);
-	t = Clamp(t, 1.0f, 0.0f);
-	Vector3 result = Add(segment.origin, Multiply(t, segment.diff));
-	return result;*/
 };
 
 Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m) {
