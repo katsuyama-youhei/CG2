@@ -8,7 +8,7 @@
 #include "DirectXGame/Math/Vector3.h"
 #include "DirectXGame/Math/Vector4.h"
 #include "DirectXGame/Base/DirectXCommon/DirectXCommon.h"
-#include"InputManager.h"
+#include "DirectXGame/Manager/InputManager.h"
 #include <vector>
 #include <fstream>
 #include <sstream>
