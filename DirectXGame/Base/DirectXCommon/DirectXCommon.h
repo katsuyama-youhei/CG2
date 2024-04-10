@@ -2,6 +2,7 @@
 #include "DirectXGame/Base/WinApp/WinApp.h"
 #include "DirectXGame/Base/DebugSytem/DebugLog.h"
 #include "Externals/DirectXTex/d3dx12.h"
+#include <WRL/client.h>
 #include <format>
 #include <d3d12.h>
 #include <dxgi1_6.h>
