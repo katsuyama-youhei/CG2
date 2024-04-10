@@ -930,46 +930,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 			dxCommon->PostDraw();
 
-			//// 画面に描く処理はすべて終わり、画面に移すので、状態を遷移
-			//// 今回はRenderTargetからPresentにする
-			//barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-			//barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-			//// TransitionBarrierを張る
-			//commandList->ResourceBarrier(1, &barrier);
-
-
-			//// コマンドリストの内容を確定させる。すべてのコマンドを積んでからCloseすること
-			//hr = commandList->Close();
-			//assert(SUCCEEDED(hr));
-
-
-			//// GPUにコマンドリストの実行を行わせる
-			//Microsoft::WRL::ComPtr<ID3D12CommandList> commandLists[] = { commandList };
-			//commandQueue->ExecuteCommandLists(1, commandLists->GetAddressOf());
-			//// GPUとOSに画面の交換を行うように通知する
-			//swapChain->Present(1, 0);
-
-			//// Fenceの値を更新
-			//fenceValue++;
-			//// GPUがここまでたどり着いたときに、fenceの値を指定した値に代入するようにSignalを送る
-			//commandQueue->Signal(fence.Get(), fenceValue);
-
-			//// Fenceの値が指定したSignal値にたどり着いているかの確認をする
-			//// GetCompletedValueの初期値はFence作成時にわたした初期値
-			//if (fence->GetCompletedValue() < fenceValue) {
-			//	// 指定したSignalにたどり着いていないので、たどり着くまで待つようにイベントを設定する
-			//	fence->SetEventOnCompletion(fenceValue, fenceEvent);
-			//	// イベント待つ
-			//	WaitForSingleObject(fenceEvent, INFINITE);
-			//}
-
-			//// 次のフレーム用のコマンドリストを準備
-			//hr = commandAllocator->Reset();
-			//assert(SUCCEEDED(hr));
-			//hr = commandList->Reset(commandAllocator.Get(), nullptr);
-			//assert(SUCCEEDED(hr));
 		}
-
 
 	}
 
@@ -982,24 +943,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	ImGui::DestroyContext();*/
 
 	// 解放
-	//CloseHandle(fenceEvent);
-	//fence->Release();
-	//rtvDescriptorHeap->Release();
-	//swapChainResources[0]->Release();
-	//swapChainResources[1]->Release();
-	//swapChain->Release();
-	//commandList->Release();
-	//commandAllocator->Release();
-	//commandQueue->Release();
-	//device->Release();
-	//useAdapter->Release();
-	//dxgiFactory->Release();
-#ifdef _DEBUG
-	//debugController->Release();
-#endif
-
-	//vertexResource->Release();
-	//graphicsPipelineState->Release();
 	signatureBlob->Release();
 	if (errorBlob) {
 		errorBlob->Release();
@@ -1008,36 +951,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	pixelShaderBlob->Release();
 	vertexShaderBlob->Release();
 
-	//materialResource->Release();
-
-	//wvpResource->Release();
-
-	//srvDescriptorHeap->Release();
-
-	//textureResource->Release();
-
-	//intermediateResource->Release();
-
-	//depthStencilResource->Release();
-
-	//dsvDescriptorHeap->Release();
-
-	//vertexResourceSprite->Release();
-	//transformationMatrixResourceSprite->Release();
-
-	//textureResource2->Release();
-	//intermediateResource2->Release();
-
-	//materialResourceSprite->Release();
-	//directionalLightResource->Release();
-
-	//indexResourceSprite->Release();
-	//indexResource->Release();
-
 	CloseWindow(winApp->GetHWND());
-
-	// ゲーム終了時にCOMの終了処理
-	//CoUninitialize();
 	winApp->DiscardingWindow();
 
 	return 0;
