@@ -7,7 +7,7 @@
 #include "DirectXGame/Math/Vector2.h"
 #include "DirectXGame/Math/Vector3.h"
 #include "DirectXGame/Math/Vector4.h"
-#include "DirectXCommon.h"
+#include "DirectXGame/Base/DirectXCommon/DirectXCommon.h"
 #include <vector>
 #include <fstream>
 #include <sstream>
