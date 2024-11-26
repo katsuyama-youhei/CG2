@@ -18,6 +18,15 @@
 #include <sstream>
 #include "externals/DirectXTex/DirectXTex.h"
 #include "externals/DirectXTex/d3dx12.h"
+#include <string>
+#include <iostream>
+#include <locale>
+#include <codecvt>
+#include "externals/DirectXTex/DDS.h"
+#include "externals/DirectXTK/Inc/DDSTextureLoader.h"
+#include "externals/DirectXTK/Inc/WICTextureLoader.h"
+#include <wrl.h>
+#include <filesystem>
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib,"dxguid.lib")
@@ -62,7 +71,13 @@ struct ModelData {
 	MaterialData material;
 };
 
+DirectX::TexMetadata metadata_;
+// 画像イメージのコンテナ
+DirectX::ScratchImage scratchImage_;
 
+std::wstring directoryPath_;
+std::wstring fileName_;
+std::wstring fileExt_;
 
 // CompileShader
 IDxcBlob* CompileShader(
@@ -178,22 +193,137 @@ ID3D12DescriptorHeap* CreateDescriptorHeap(ID3D12Device* device, D3D12_DESCRIPTO
 	return descriptorHeap;
 }
 
+// ファイルパスの分解
+
+void SeparateFilePath(const std::wstring& filePath) {
+	size_t pos1;
+	std::wstring exceptExt;
+
+	// 区切り文字'.'が出てくる一番最後の部分を検索
+	pos1 = filePath.rfind('.');
+	// 検索がヒットしたら
+	if (pos1 != std::wstring::npos) {
+		// 区切り文字の後ろをファイル拡張子として保存
+		fileExt_ = filePath.substr(pos1 + 1, filePath.size() - pos1 - 1);
+		// 区切り文字の前までを抜き出す
+		exceptExt = filePath.substr(0, pos1);
+	}
+	else {
+		fileExt_ = L"";
+		exceptExt = filePath;
+	}
+
+	// 区切り文字'\\'が出てくる一番最後の部分を検索
+	pos1 = exceptExt.rfind('\\');
+	if (pos1 != std::wstring::npos) {
+		// 区切り文字の前までをディレクトリパスとして保存
+		directoryPath_ = exceptExt.substr(0, pos1 + 1);
+		// 区切り文字の後ろをファイル名として保存
+		fileName_ = exceptExt.substr(pos1 + 1, exceptExt.size() - pos1 - 1);
+		return;
+	}
+
+	// 区切り文字'/'が出てくる一番最後の部分を検索
+	pos1 = exceptExt.rfind('/');
+	if (pos1 != std::wstring::npos) {
+		// 区切り文字の前までをディレクトリパスとして保存
+		directoryPath_ = exceptExt.substr(0, pos1 + 1);
+		// 区切り文字の後ろをファイル名として保存
+		fileName_ = exceptExt.substr(pos1 + 1, exceptExt.size() - pos1 - 1);
+		return;
+	}
+
+	directoryPath_ = L"";
+	fileName_ = exceptExt;
+}
+
+std::wstring ConvertMultiByteStringToWideString(const std::string& mString) {
+	// ワイド文字列に変換した際の文字数を計算
+	int filePathBufferSize = MultiByteToWideChar(CP_ACP, 0, mString.c_str(), -1, nullptr, 0);
+
+	// ワイド文字
+	std::wstring wString;
+	wString.resize(filePathBufferSize);
+
+	// ワイド文字に変換
+	MultiByteToWideChar(CP_ACP, 0, mString.c_str(), -1, &wString[0], filePathBufferSize);
+
+	return wString;
+}
+
+void LoadWICTextureFromFile(const std::string& filePath) {
+	// ファイルパスをワイド文字列に変換する
+	std::wstring wfilePath = ConvertMultiByteStringToWideString(filePath);
+	
+	
+	//std::wstring dds_filename.replace_extension("dds");
+	std::filesystem::path dds_filename(filePath);
+	//std::wstring dds_filename;
+	dds_filename.replace_extension("dds");
+	//std::filesystem::path dds_filename(filePath);
+	
+	if (std::filesystem::exists(dds_filename.c_str())) {
+
+	}
+	else {
+		HRESULT result = LoadFromWICFile(wfilePath.c_str(), DirectX::WIC_FLAGS_NONE, &metadata_, scratchImage_);
+		assert(SUCCEEDED(result));
+	}
+
+	// WICテクスチャのロード
+	/*HRESULT result = LoadFromWICFile(wfilePath.c_str(), DirectX::WIC_FLAGS_NONE, &metadata_, scratchImage_);
+	assert(SUCCEEDED(result));*/
+
+	// フォルダパスとファイル名を分離する
+	SeparateFilePath(wfilePath);
+}
+
+std::wstring convertToWString(const char* cstr) {
+	int bufferSize = MultiByteToWideChar(CP_UTF8, 0, cstr, -1, nullptr, 0);
+	std::wstring wstr(bufferSize, 0);
+	MultiByteToWideChar(CP_UTF8, 0, cstr, -1, &wstr[0], bufferSize);
+	return wstr;
+}
+
+// 比較関数
+bool compare(const std::wstring& wstr, const char* cstr) {
+	std::wstring converted = convertToWString(cstr);
+	return wstr == converted;
+}
 
 // テキストデータを読む
 DirectX::ScratchImage LoadTexture(const std::string& filePath) {
 	// テクスチャファイルを読んでプログラムで扱えるようにする
 	DirectX::ScratchImage image{};
-	std::wstring filePathW = ConvertString(filePath);
-	HRESULT hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
+	//std::wstring filePathW = ConvertString(filePath);
+
+	// ファイルパス分解用ディレクトリ
+
+	//HRESULT hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
+
+	HRESULT hr;
+	const char* cstr = "dds";
+	LoadWICTextureFromFile(filePath);
+
+	std::wstring filePathW = directoryPath_ + fileName_ + L"."+fileExt_;
+
+	if (compare(fileExt_, cstr)) {
+		hr = DirectX::LoadFromDDSFile(filePathW.c_str(), DirectX::DDS_FLAGS_NONE, &metadata_, scratchImage_);
+	}
+	else {
+		hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, &metadata_, scratchImage_);
+	}
 	assert(SUCCEEDED(hr));
 
 	// ミップマップの作成
 	DirectX::ScratchImage mipImages{};
-	hr = DirectX::GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DirectX::TEX_FILTER_SRGB, 0, mipImages);
+	hr = DirectX::GenerateMipMaps(scratchImage_.GetImages(), scratchImage_.GetImageCount(), scratchImage_.GetMetadata(), DirectX::TEX_FILTER_SRGB, 0, mipImages);
 	assert(SUCCEEDED(hr));
 
 	// ミップマップ付きのデータを返す
 	return mipImages;
+
+
 }
 
 // TextureResource作成
@@ -353,7 +483,7 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 		std::string identifier;
 		std::istringstream s(line);
 		s >> identifier;  // 先頭の識別子を読む
-		
+
 		// identifierに応じた処理
 		if (identifier == "v") {
 			Vector4 position;
@@ -411,7 +541,7 @@ ModelData LoadObjFile(const std::string& directoryPath, const std::string& filen
 			modelData.material = LordMaterialTemplateFile(directoryPath, materialFilename);
 		}
 	}
-	
+
 	// 4. ModelDataを返す
 	return modelData;
 }
@@ -796,7 +926,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// 書き込むためのアドレスを取得
 	vertexResource->Map(0, nullptr, reinterpret_cast<void**>(&vertexData));
 	// 頂点データをリソースにコピー
-	std::memcpy(vertexData, modelData.vertices.data(), sizeof(VertexData)* modelData.vertices.size());
+	std::memcpy(vertexData, modelData.vertices.data(), sizeof(VertexData) * modelData.vertices.size());
 
 	// Sphere用のインデックスリソースを作る
 	ID3D12Resource* indexResource = CreateBufferResource(device, sizeof(uint32_t) * kSubdivision * kSubdivision * 6);
@@ -812,11 +942,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	// インデックスリソースにデータを書き込む
 	uint32_t* indexData = nullptr;
 	indexResource->Map(0, nullptr, reinterpret_cast<void**>(&indexData));
-	
+
 	/*
-	 
-	
-	// 緯度の方向に分割 
+
+
+	// 緯度の方向に分割
 	for (uint32_t latIndex = 0; latIndex < kSubdivision; ++latIndex) {
 		float lat = -1.0f * float(std::numbers::pi) / 2.0f + kLatEvery * latIndex;  // 現在の緯度
 		// 経度の方向に分割
@@ -891,8 +1021,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		}
 	}
-	
-	
+
+
 	*/
 
 	// Sprite用の頂点リソースを作る
@@ -1092,7 +1222,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	// 2枚目
 	// 2枚目のTextureを読んで転送する
-	DirectX::ScratchImage mipImages2 = LoadTexture(modelData.material.textureFilePath);
+	DirectX::ScratchImage mipImages2 = LoadTexture("resources/kadai.dds");
 	const DirectX::TexMetadata& metadata2 = mipImages2.GetMetadata();
 	ID3D12Resource* textureResource2 = CreateTextureResource(device, metadata2);
 	ID3D12Resource* intermediateResource2 = UploadTextureData(textureResource2, mipImages2, device, commandList);

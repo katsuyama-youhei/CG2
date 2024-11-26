@@ -643,14 +643,14 @@ Matrix4x4 MakeViewportMatrix(float left, float top, float width, float height, f
 #pragma endregion
 
 void ControlMinMax(AABB& a) {
-	a.min.x = (std::min)(a.min.x, a.max.x);
-	a.max.x = (std::max)(a.min.x, a.max.x);
+	a.min.x = (std::fmin)(a.min.x, a.max.x);
+	a.max.x = (std::fmax)(a.min.x, a.max.x);
 
-	a.min.y = (std::min)(a.min.y, a.max.y);
-	a.max.y = (std::max)(a.min.y, a.max.y);
+	a.min.y = (std::fmin)(a.min.y, a.max.y);
+	a.max.y = (std::fmax)(a.min.y, a.max.y);
 
-	a.min.z = (std::min)(a.min.z, a.max.z);
-	a.max.z = (std::max)(a.min.z, a.max.z);
+	a.min.z = (std::fmin)(a.min.z, a.max.z);
+	a.max.z = (std::fmax)(a.min.z, a.max.z);
 }
 
 // AABB同士の衝突判定
