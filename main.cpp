@@ -297,16 +297,7 @@ DirectX::ScratchImage LoadTexture(const std::string& filePath) {
 	DirectX::ScratchImage image{};
 	std::wstring filePathW = ConvertString(filePath);
 
-	// ファイルパス分解用ディレクトリ
-
-	//HRESULT hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, nullptr, image);
-
-	//HRESULT hr;
-	//const char* cstr = "dds";
 	LoadWICTextureFromFile(filePath);
-	
-	//DirectX::ScratchImage image{};
-	//std::wstring filePathW = directoryPath_ + fileName_ + L"."+fileExt_;
 
 	HRESULT hr;
 	if (filePathW.ends_with(L".dds")) {//DDS
@@ -317,14 +308,6 @@ DirectX::ScratchImage LoadTexture(const std::string& filePath) {
 	}
 	assert(SUCCEEDED(hr));
 
-	/*if (compare(fileExt_, cstr)) {
-		hr = DirectX::LoadFromDDSFile(filePathW.c_str(), DirectX::DDS_FLAGS_NONE, &metadata_, scratchImage_);
-	}
-	else {
-		hr = DirectX::LoadFromWICFile(filePathW.c_str(), DirectX::WIC_FLAGS_FORCE_SRGB, &metadata_, scratchImage_);
-	}
-	assert(SUCCEEDED(hr));*/
-
 	// ミップマップの作成
 	DirectX::ScratchImage mipImages{};
 	if (DirectX::IsCompressed(image.GetMetadata().format)) {
@@ -333,7 +316,6 @@ DirectX::ScratchImage LoadTexture(const std::string& filePath) {
 	else {
 		hr = DirectX::GenerateMipMaps(image.GetImages(), image.GetImageCount(), image.GetMetadata(), DirectX::TEX_FILTER_SRGB, 0, mipImages);
 	}
-	//hr = DirectX::GenerateMipMaps(scratchImage_.GetImages(), scratchImage_.GetImageCount(), scratchImage_.GetMetadata(), DirectX::TEX_FILTER_SRGB, 0, mipImages);
 	assert(SUCCEEDED(hr));
 
 	// ミップマップ付きのデータを返す
